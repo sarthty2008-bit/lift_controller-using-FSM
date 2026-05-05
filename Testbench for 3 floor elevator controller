@@ -1,0 +1,47 @@
+module elevator_tb;
+  reg clk, rst;
+  reg [2:0] req;
+  wire [1:0] floor;
+  wire door_open, moving_up, moving_down;
+
+  elevator_controller dut (
+    .clk(clk), .rst(rst), .req(req),
+    .floor(floor), .door_open(door_open),
+    .moving_up(moving_up), .moving_down(moving_down)
+  );
+
+  always #5 clk = ~clk;
+
+  initial begin
+    clk = 0; rst = 1; req = 0;
+    #20 rst = 0;
+
+    // Pattern 1: request floor 2 from floor 0
+    #10 req = 3'b100;
+    #10 req = 0;
+    #120;
+
+    // Pattern 2: multiple requests
+    req = 3'b011; // floors 0 and 1
+    #10 req = 0;
+    #150;
+
+    // Pattern 3: request floor 0 from floor 2
+    req = 3'b001;
+    #10 req = 0;
+    #120;
+
+    // Pattern 4: all floors simultaneously
+    req = 3'b111;
+    #10 req = 0;
+    #300;
+
+    $display("Simulation complete");
+    $finish;
+  end
+
+  initial begin
+    $display("Time\\tFloor\\tDoor\\tUp\\tDown");
+    $monitor("%0t\\t%0d\\t%b\\t%b\\t%b", $time, floor, door_open, moving_up, moving_down);
+  end
+endmodule
